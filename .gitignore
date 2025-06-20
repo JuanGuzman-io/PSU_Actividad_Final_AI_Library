@@ -1,0 +1,44 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Data files
+# Uncomment the next line if you want to ignore your CSV files
+# *.csv
+
+# Model files
+# Uncomment the next line if you want to ignore your model files
+# models/
+
+# Generated images
+# Uncomment the next line if you want to ignore image files
+# *.png
+
+# Logs
+logs/
+*.log
