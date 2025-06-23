@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from AIlibrary import FraudDetectionLibrary
+from AIlibrary import FraudDetectionLibrary, data_clean
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
@@ -18,9 +18,11 @@ def main():
     data_path = "credit_card_transactions.csv"
 
     try:
-        df = pd.read_csv(data_path)
+
+        print("🧽 Procesando datos crudos con data_clean()...")
+        df = data_clean(data_path)
         print(
-            f"✅ Datos cargados: {df.shape[0]} transacciones, {df.shape[1]} características")
+            f"✅ Datos procesados: {df.shape[0]} transacciones, {df.shape[1]} características")
     except FileNotFoundError:
         print("❌ Archivo credit_card_transactions.csv no encontrado.")
         print("💡 Por favor, transfiere el archivo desde Colab a este directorio.")
@@ -36,8 +38,11 @@ def main():
         fraud_distribution = df['is_fraud'].value_counts()
         print(f"   - Distribución de fraude: {dict(fraud_distribution)}")
     else:
-        print("⚠️  Columna 'is_fraud' no encontrada. Creando etiquetas sintéticas...")
-        df['is_fraud'] = create_fraud_labels(df)
+        print("⚠️  Columna 'is_fraud' no encontrada. Usando datos sintéticos...")
+        df = create_synthetic_data()
+        fraud_distribution = df['is_fraud'].value_counts()
+        print(
+            f"   - Distribución de fraude (sintética): {dict(fraud_distribution)}")
 
     print("\n📋 Paso 2: Preparando datos para entrenamiento y prueba...")
 
@@ -145,10 +150,11 @@ def create_fraud_labels(df):
     """
     Crea etiquetas de fraude basadas en reglas heurísticas.
     """
+
     fraud_conditions = (
         (df['amt'] > 1000) |
-        (df['trans_hour'].isin([2, 3, 4])) |
-        (df.get('distance', 0) > 100)
+        (df.get('trans_hour', df.get('hour', np.random.choice(range(24), len(df)))).isin([2, 3, 4])) |
+        (df.get('distance', np.random.exponential(20, len(df))) > 100)
     )
 
     random_fraud = np.random.random(len(df)) < 0.02
