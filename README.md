@@ -147,17 +147,32 @@ python AppCompletePipeline.py
 - ✅ **Rápida ejecución**: sin visualizaciones pesadas
 - ✅ **Ideal para entrega**: muestra todas las funcionalidades requeridas
 
-### 🎨 **App.py** - Demo con Visualizaciones
-**Uso:** Demostración completa con gráficos y análisis visual
+### 🎨 **App.py** - Aplicación de Detección en Tiempo Real
+**Uso:** Aplicación interactiva para analizar transacciones individuales
 
 ```bash
 python App.py
 ```
 
 **Características:**
+- ✅ **Aplicación real**: simula sistema en producción
+- ✅ **Análisis individual**: ingresa transacciones y obtiene resultados
+- ✅ **Modo interactivo**: menú fácil de usar
+- ✅ **Transacciones de ejemplo**: casos preconfigurados
+- ✅ **Niveles de riesgo**: clasifica como Alto/Medio/Bajo/Mínimo
+- ✅ **Recomendaciones**: Bloquear/Revisar/Monitorear/Aprobar
+
+### 📊 **AppDemo.py** - Demo con Visualizaciones
+**Uso:** Demostración completa con gráficos y análisis visual
+
+```bash
+python AppDemo.py
+```
+
+**Características:**
 - ✅ **Visualizaciones**: gráficos de métricas y análisis
-- ✅ **Análisis detallado**: casos de alto riesgo con estadísticas
-- ✅ **Demo interactiva**: simulación de predicciones en tiempo real
+- ✅ **Análisis detallado**: casos de alto riesgo con estadisticas
+- ✅ **Demo completa**: proceso completo de entrenamiento a predicción
 - ✅ **Datos sintéticos**: genera datos si no encuentra el archivo original
 - ✅ **Ideal para presentaciones**: más visual y completo
 
@@ -176,9 +191,10 @@ python data_cleaning.py
 ### 📋 **¿Cuál ejecutar?**
 
 | Propósito | Archivo Recomendado |
-|-----------|--------------------|
+|-----------|--------------------|  
 | **Entrega del proyecto** | `AppCompletePipeline.py` ✅ |
-| **Presentación visual** | `App.py` 🎨 |
+| **Aplicación en producción** | `App.py` 🎨 |
+| **Presentación visual** | `AppDemo.py` 📊 |
 | **Solo limpieza de datos** | `data_cleaning.py` 🧽 |
 
 El demo ejecutará automáticamente:

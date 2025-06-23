@@ -1,314 +1,317 @@
+# App.py
+# Aplicación de detección de fraude en tiempo real
+
 import pandas as pd
 import numpy as np
-from AIlibrary import FraudDetectionLibrary, data_clean
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
+from AIlibrary import FraudDetectionLibrary
+import sys
 
+class FraudDetectionApp:
+    """
+    Aplicación de detección de fraude que simula un sistema en producción.
+    """
+    
+    def __init__(self, model_name="fraud_detector_v1"):
+        """
+        Inicializa la aplicación cargando el modelo entrenado.
+        """
+        print("🚀 INICIANDO APLICACIÓN DE DETECCIÓN DE FRAUDE")
+        print("="*50)
+        
+        try:
+            self.detector = FraudDetectionLibrary()
+            self.detector.load_model(model_name)
+            print("✅ Modelo cargado exitosamente")
+            print("🛡️ Sistema listo para detectar fraudes\n")
+        except FileNotFoundError:
+            print("❌ Modelo no encontrado.")
+            print("💡 Ejecuta primero 'python AppCompletePipeline.py' para entrenar el modelo")
+            sys.exit(1)
+    
+    def check_transaction(self, transaction_data):
+        """
+        Analiza una transacción y determina si es fraude.
+        
+        Args:
+            transaction_data (dict): Datos de la transacción
+            
+        Returns:
+            dict: Resultado del análisis
+        """
+        
+        # Convertir a DataFrame
+        transaction_df = pd.DataFrame([transaction_data])
+        
+        # Agregar características faltantes con valores por defecto
+        for feature_name in self.detector.feature_names:
+            if feature_name not in transaction_df.columns:
+                if feature_name.startswith('feature_'):
+                    # Características sintéticas con valor 0
+                    transaction_df[feature_name] = 0.0
+                else:
+                    # Otras características con valores por defecto
+                    default_values = {
+                        'cc_num': 100,
+                        'merchant': 50,
+                        'trans_year': 2024,
+                        'trans_month': 6,
+                        'trans_day': 15,
+                        'trans_season': 2,
+                        'trans_minute': 30,
+                        'trans_second': 15
+                    }
+                    transaction_df[feature_name] = default_values.get(feature_name, 0)
+        
+        # Hacer predicción
+        result = self.detector.test_model(transaction_df)
+        
+        fraud_probability = result['fraud_probability'][0]
+        is_fraud = result['predictions'][0]
+        
+        # Determinar nivel de riesgo
+        if fraud_probability > 0.8:
+            risk_level = "🔴 ALTO RIESGO"
+            recommendation = "BLOQUEAR TRANSACCIÓN"
+        elif fraud_probability > 0.5:
+            risk_level = "🟡 RIESGO MEDIO"
+            recommendation = "REVISAR MANUALMENTE"
+        elif fraud_probability > 0.2:
+            risk_level = "🟠 RIESGO BAJO"
+            recommendation = "MONITOREAR"
+        else:
+            risk_level = "🟢 RIESGO MÍNIMO"
+            recommendation = "APROBAR"
+        
+        return {
+            'is_fraud': bool(is_fraud),
+            'fraud_probability': fraud_probability,
+            'risk_level': risk_level,
+            'recommendation': recommendation,
+            'transaction_id': transaction_data.get('id', 'N/A')
+        }
+    
+    def print_analysis(self, transaction_data, result):
+        """
+        Imprime el análisis de la transacción de forma clara.
+        """
+        print("\n" + "="*60)
+        print(f"📊 ANÁLISIS DE TRANSACCIÓN #{result['transaction_id']}")
+        print("="*60)
+        
+        # Datos de la transacción
+        print(f"💰 Monto: ${transaction_data['amt']:.2f}")
+        print(f"🕒 Hora: {transaction_data.get('trans_hour', 'N/A')}:00")
+        print(f"👤 Edad del titular: {transaction_data.get('card_holder_age', 'N/A')} años")
+        print(f"📍 Distancia: {transaction_data.get('distance', 'N/A')} km")
+        print(f"🏪 Categoría: {transaction_data.get('category', 'N/A')}")
+        
+        # Resultado del análisis
+        print(f"\n🎯 RESULTADO DEL ANÁLISIS:")
+        print(f"   📈 Probabilidad de fraude: {result['fraud_probability']:.1%}")
+        print(f"   🚨 Clasificación: {'FRAUDE' if result['is_fraud'] else 'LEGÍTIMA'}")
+        print(f"   ⚠️  Nivel de riesgo: {result['risk_level']}")
+        print(f"   💡 Recomendación: {result['recommendation']}")
+        
+        print("="*60)
+
+def create_sample_transactions():
+    """
+    Crea transacciones de ejemplo para demostrar la aplicación.
+    """
+    transactions = [
+        {
+            'id': 'TXN001',
+            'amt': 45.99,
+            'trans_hour': 14,
+            'card_holder_age': 35,
+            'distance': 5.2,
+            'category': 1,
+            'gender': 1,
+            'lat': 40.7128,
+            'long': -74.0060,
+            'city_pop': 8000000,
+            'job': 15,
+            'merch_lat': 40.7589,
+            'merch_long': -73.9851,
+            'cc_num': 123,
+            'merchant': 45,
+            'trans_year': 2024,
+            'trans_month': 6,
+            'trans_day': 15,
+            'trans_season': 2,
+            'trans_weekday': 3,
+            'trans_minute': 30,
+            'trans_second': 15,
+            # Características adicionales del modelo
+            'feature_0': 0.1,
+            'feature_1': -0.2,
+            'feature_2': 0.3,
+            'feature_3': 0.0,
+            'feature_4': 0.5,
+            'feature_5': -0.1,
+            'feature_6': 0.2,
+            'feature_7': 0.4,
+            'feature_8': -0.3,
+            'feature_9': 0.1
+        },
+        {
+            'id': 'TXN002',
+            'amt': 2500.00,  # Monto alto - sospechoso
+            'trans_hour': 3,  # Hora inusual - sospechoso
+            'card_holder_age': 22,
+            'distance': 150.5,  # Distancia larga - sospechoso
+            'category': 5,
+            'gender': 0,
+            'lat': 34.0522,
+            'long': -118.2437,
+            'city_pop': 4000000,
+            'job': 8,
+            'merch_lat': 36.1627,
+            'merch_long': -115.1969,
+            'cc_num': 456,
+            'merchant': 78,
+            'trans_year': 2024,
+            'trans_month': 6,
+            'trans_day': 15,
+            'trans_season': 2,
+            'trans_weekday': 5,
+            'trans_minute': 45,
+            'trans_second': 33,
+            # Características que pueden indicar fraude
+            'feature_0': 1.2,
+            'feature_1': 2.1,
+            'feature_2': -1.5,
+            'feature_3': 0.8,
+            'feature_4': 1.7,
+            'feature_5': -0.9,
+            'feature_6': 1.3,
+            'feature_7': 2.0,
+            'feature_8': -1.1,
+            'feature_9': 1.4
+        },
+        {
+            'id': 'TXN003',
+            'amt': 89.50,
+            'trans_hour': 10,
+            'card_holder_age': 45,
+            'distance': 2.1,
+            'category': 2,
+            'gender': 1,
+            'lat': 41.8781,
+            'long': -87.6298,
+            'city_pop': 2700000,
+            'job': 12,
+            'merch_lat': 41.8825,
+            'merch_long': -87.6230,
+            'cc_num': 789,
+            'merchant': 23,
+            'trans_year': 2024,
+            'trans_month': 6,
+            'trans_day': 15,
+            'trans_season': 2,
+            'trans_weekday': 3,
+            'trans_minute': 20,
+            'trans_second': 8,
+            # Características normales
+            'feature_0': 0.0,
+            'feature_1': 0.1,
+            'feature_2': -0.1,
+            'feature_3': 0.2,
+            'feature_4': 0.0,
+            'feature_5': 0.1,
+            'feature_6': -0.2,
+            'feature_7': 0.0,
+            'feature_8': 0.1,
+            'feature_9': 0.0
+        }
+    ]
+    
+    return transactions
+
+def interactive_mode():
+    """
+    Modo interactivo para ingresar transacciones manualmente.
+    """
+    print("\n🔧 MODO INTERACTIVO")
+    print("Ingresa los datos de la transacción:")
+    
+    try:
+        transaction = {
+            'id': input("ID de transacción: ") or "MANUAL",
+            'amt': float(input("Monto ($): ")),
+            'trans_hour': int(input("Hora (0-23): ")),
+            'card_holder_age': int(input("Edad del titular: ")),
+            'distance': float(input("Distancia al comercio (km): ")),
+            'category': int(input("Categoría del comercio (0-15): ")),
+            'gender': int(input("Género (0=M, 1=F): ")),
+            'lat': float(input("Latitud del cliente: ") or "40.7128"),
+            'long': float(input("Longitud del cliente: ") or "-74.0060"),
+            'city_pop': int(input("Población de la ciudad: ") or "1000000"),
+            'job': int(input("Código de trabajo (0-20): ") or "10"),
+            'merch_lat': float(input("Latitud del comercio: ") or "40.7589"),
+            'merch_long': float(input("Longitud del comercio: ") or "-73.9851"),
+        }
+        
+        # Agregar campos adicionales con valores por defecto
+        transaction.update({
+            'cc_num': 100,
+            'merchant': 50,
+            'trans_year': 2024,
+            'trans_month': 6,
+            'trans_day': 15,
+            'trans_season': 2,
+            'trans_weekday': 3,
+            'trans_minute': 30,
+            'trans_second': 15
+        })
+        
+        return transaction
+        
+    except ValueError:
+        print("❌ Error: Ingresa valores numéricos válidos")
+        return None
 
 def main():
     """
-    Función principal que demuestra el uso completo de la librería.
+    Función principal de la aplicación.
     """
-    print("🚀 DEMO: Librería de Detección de Fraude")
-    print("="*50)
-
-    print("\n📁 Paso 1: Cargando datos...")
-
-    data_path = "credit_card_transactions.csv"
-
-    try:
-
-        print("🧽 Procesando datos crudos con data_clean()...")
-        df = data_clean(data_path)
-        print(
-            f"✅ Datos procesados: {df.shape[0]} transacciones, {df.shape[1]} características")
-    except FileNotFoundError:
-        print("❌ Archivo credit_card_transactions.csv no encontrado.")
-        print("💡 Por favor, transfiere el archivo desde Colab a este directorio.")
-
-        print("🔄 Generando datos sintéticos para demostración...")
-        df = create_synthetic_data()
-
-    print(f"\n📊 Información del dataset:")
-    print(f"   - Total de transacciones: {len(df)}")
-    print(f"   - Características: {df.columns.tolist()}")
-
-    if 'is_fraud' in df.columns:
-        fraud_distribution = df['is_fraud'].value_counts()
-        print(f"   - Distribución de fraude: {dict(fraud_distribution)}")
-    else:
-        print("⚠️  Columna 'is_fraud' no encontrada. Usando datos sintéticos...")
-        df = create_synthetic_data()
-        fraud_distribution = df['is_fraud'].value_counts()
-        print(
-            f"   - Distribución de fraude (sintética): {dict(fraud_distribution)}")
-
-    print("\n📋 Paso 2: Preparando datos para entrenamiento y prueba...")
-
-    train_data, test_data = train_test_split(
-        df, test_size=0.3, random_state=42, stratify=df['is_fraud'])
-
-    print(f"   - Datos de entrenamiento: {len(train_data)} transacciones")
-    print(f"   - Datos para predicción: {len(test_data)} transacciones")
-
-    print("\n🤖 Paso 3: Entrenando modelo de detección de fraude...")
-
-    fraud_detector = FraudDetectionLibrary()
-
-    train_params = {
-        'algorithm': 'random_forest',
-        'n_estimators': 100,
-        'max_depth': 10,
-        'test_size': 0.2,
-        'use_smote': True,
-        'cv_folds': 5,
-        'random_state': 42
-    }
-
-    training_results = fraud_detector.train_model(
-        train_data, train_params=train_params)
-
-    print("\n💾 Paso 4: Guardando modelo entrenado...")
-
-    model_name = "fraud_detector_v1"
-    save_path = fraud_detector.save_model(model_name)
-
-    print("\n📂 Paso 5: Cargando modelo (simulando uso posterior)...")
-
-    new_detector = FraudDetectionLibrary()
-    new_detector.load_model(model_name)
-
-    print("\n🔍 Paso 6: Realizando predicciones sobre datos nuevos...")
-
-    test_features = test_data.drop(columns=['is_fraud'])
-
-    prediction_results = new_detector.test_model(test_features)
-
-    print("\n📊 Paso 7: Evaluando calidad de las predicciones...")
-
-    y_true = test_data['is_fraud'].values
-    y_pred = prediction_results['predictions']
-
-    from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
-    accuracy = accuracy_score(y_true, y_pred)
-    print(f"🎯 Precisión en datos nuevos: {accuracy:.4f}")
-
-    print("\n📋 Reporte de clasificación:")
-    print(classification_report(y_true, y_pred))
-
-    print("\n🔢 Matriz de confusión:")
-    conf_matrix = confusion_matrix(y_true, y_pred)
-    print(conf_matrix)
-
-    print("\n📈 Paso 8: Generando visualizaciones...")
-
-    create_visualizations(training_results, prediction_results, y_true, y_pred)
-
-    print("\n🚨 Paso 9: Análisis de transacciones de alto riesgo...")
-
-    analyze_high_risk_transactions(test_data, prediction_results)
-
-    print("\n✅ Demo completada exitosamente!")
-    print("="*50)
-
-
-def create_synthetic_data(n_samples=1000):
-    """
-    Crea un dataset sintético para demostración cuando no está disponible el real.
-    """
-    np.random.seed(42)
-
-    data = {
-        'amt': np.random.exponential(50, n_samples),
-        'gender': np.random.choice([0, 1], n_samples),
-        'lat': np.random.uniform(25, 50, n_samples),
-        'long': np.random.uniform(-125, -65, n_samples),
-        'city_pop': np.random.exponential(10000, n_samples),
-        'job': np.random.choice(range(20), n_samples),
-        'merch_lat': np.random.uniform(25, 50, n_samples),
-        'merch_long': np.random.uniform(-125, -65, n_samples),
-        'category': np.random.choice(range(15), n_samples),
-        'trans_hour': np.random.choice(range(24), n_samples),
-        'trans_weekday': np.random.choice(range(7), n_samples),
-        'card_holder_age': np.random.normal(45, 15, n_samples),
-        'distance': np.random.exponential(20, n_samples)
-    }
-
-    for i in range(10):
-        data[f'feature_{i}'] = np.random.normal(0, 1, n_samples)
-
-    df = pd.DataFrame(data)
-
-    df['is_fraud'] = create_fraud_labels(df)
-
-    return df
-
-
-def create_fraud_labels(df):
-    """
-    Crea etiquetas de fraude basadas en reglas heurísticas.
-    """
-
-    fraud_conditions = (
-        (df['amt'] > 1000) |
-        (df.get('trans_hour', df.get('hour', np.random.choice(range(24), len(df)))).isin([2, 3, 4])) |
-        (df.get('distance', np.random.exponential(20, len(df))) > 100)
-    )
-
-    random_fraud = np.random.random(len(df)) < 0.02
-
-    return ((fraud_conditions) | random_fraud).astype(int)
-
-
-def create_visualizations(training_results, prediction_results, y_true, y_pred):
-    """
-    Crea visualizaciones de los resultados.
-    """
-    plt.style.use('default')
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
-
-    sns.heatmap(training_results['confusion_matrix'], annot=True, fmt='d',
-                cmap='Blues', ax=axes[0, 0])
-    axes[0, 0].set_title('Matriz de Confusión - Entrenamiento')
-    axes[0, 0].set_ylabel('Valores Reales')
-    axes[0, 0].set_xlabel('Predicciones')
-
-    if training_results['feature_importance'] is not None:
-        top_features = training_results['feature_importance'].head(10)
-        axes[0, 1].barh(top_features['feature'], top_features['importance'])
-        axes[0, 1].set_title('Top 10 Características más Importantes')
-        axes[0, 1].set_xlabel('Importancia')
-
-    fraud_probs = prediction_results['fraud_probability']
-    axes[1, 0].hist(fraud_probs[y_true == 0], bins=50,
-                    alpha=0.7, label='Legítimo', color='green')
-    axes[1, 0].hist(fraud_probs[y_true == 1], bins=50,
-                    alpha=0.7, label='Fraude', color='red')
-    axes[1, 0].set_title('Distribución de Probabilidades de Fraude')
-    axes[1, 0].set_xlabel('Probabilidad de Fraude')
-    axes[1, 0].set_ylabel('Frecuencia')
-    axes[1, 0].legend()
-
-    metrics = ['Precisión', 'Recall', 'F1-Score', 'AUC-ROC']
-    values = [
-        training_results['precision'],
-        training_results['recall'],
-        training_results['f1_score'],
-        training_results['auc_score']
-    ]
-
-    bars = axes[1, 1].bar(metrics, values, color=[
-                          'skyblue', 'lightgreen', 'orange', 'pink'])
-    axes[1, 1].set_title('Métricas de Rendimiento')
-    axes[1, 1].set_ylabel('Score')
-    axes[1, 1].set_ylim(0, 1)
-
-    for bar, value in zip(bars, values):
-        axes[1, 1].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                        f'{value:.3f}', ha='center', va='bottom')
-
-    plt.tight_layout()
-    plt.savefig('fraud_detection_results.png', dpi=300, bbox_inches='tight')
-    plt.show()
-
-    print("📊 Visualizaciones guardadas como 'fraud_detection_results.png'")
-
-
-def analyze_high_risk_transactions(test_data, prediction_results):
-    """
-    Analiza las transacciones identificadas como de alto riesgo.
-    """
-
-    high_risk_threshold = 0.8
-    high_risk_indices = prediction_results['fraud_probability'] > high_risk_threshold
-
-    if np.sum(high_risk_indices) > 0:
-        high_risk_transactions = test_data[high_risk_indices]
-
-        print(
-            f"🚨 Encontradas {len(high_risk_transactions)} transacciones de alto riesgo (>80% probabilidad)")
-        print("\n📋 Características promedio de transacciones de alto riesgo:")
-
-        numeric_columns = high_risk_transactions.select_dtypes(
-            include=[np.number]).columns
-        summary = high_risk_transactions[numeric_columns].mean()
-
-        for col, value in summary.items():
-            if col != 'is_fraud':
-                print(f"   - {col}: {value:.2f}")
-
-        print(f"\n🔍 Ejemplo de transacciones de alto riesgo:")
-        display_columns = ['amt', 'trans_hour', 'card_holder_age', 'distance'] if 'distance' in high_risk_transactions.columns else [
-            'amt', 'trans_hour', 'card_holder_age']
-        if all(col in high_risk_transactions.columns for col in display_columns):
-            print(high_risk_transactions[display_columns].head())
-    else:
-        print("✅ No se encontraron transacciones de muy alto riesgo (>80% probabilidad)")
-
-
-def demo_real_time_prediction():
-    """
-    Demuestra cómo usar la librería para predicciones en tiempo real.
-    """
-    print("\n🔄 DEMO: Predicción en Tiempo Real")
-    print("-"*30)
-
-    detector = FraudDetectionLibrary()
-
-    try:
-        detector.load_model("fraud_detector_v1")
-
-        new_transaction = pd.DataFrame({
-            'amt': [1500.0],
-            'gender': [1],
-            'lat': [40.7128],
-            'long': [-74.0060],
-            'city_pop': [8000000.0],
-            'job': [5],
-            'merch_lat': [40.7589],
-            'merch_long': [-73.9851],
-            'category': [2],
-            'trans_hour': [3],
-            'trans_weekday': [1],
-            'card_holder_age': [35.0],
-            'distance': [15.5]
-        })
-
-        for i in range(10):
-            if f'feature_{i}' not in new_transaction.columns:
-                new_transaction[f'feature_{i}'] = [0.0]
-
-        missing_features = set(detector.feature_names) - \
-            set(new_transaction.columns)
-        for feature in missing_features:
-            new_transaction[feature] = [0.0]
-
-        result = detector.test_model(new_transaction)
-
-        fraud_prob = result['fraud_probability'][0]
-        is_fraud = result['predictions'][0]
-
-        print(f"💳 Nueva transacción analizada:")
-        print(f"   - Monto: ${new_transaction['amt'].iloc[0]:.2f}")
-        print(f"   - Hora: {new_transaction['trans_hour'].iloc[0]}:00")
-        print(f"   - Probabilidad de fraude: {fraud_prob:.1%}")
-        print(
-            f"   - Clasificación: {'🚨 FRAUDE' if is_fraud else '✅ LEGÍTIMA'}")
-
-        if fraud_prob > 0.5:
-            print("⚠️  Recomendación: Revisar manualmente esta transacción")
-
-    except FileNotFoundError:
-        print("❌ Modelo no encontrado. Ejecute primero el entrenamiento completo.")
-
+    
+    # Inicializar aplicación
+    app = FraudDetectionApp()
+    
+    # Menú principal
+    while True:
+        print("\n🎯 SISTEMA DE DETECCIÓN DE FRAUDE")
+        print("="*40)
+        print("1. 📊 Analizar transacciones de ejemplo")
+        print("2. ✍️  Ingresar transacción manualmente")
+        print("3. 🚪 Salir")
+        
+        choice = input("\nSelecciona una opción (1-3): ").strip()
+        
+        if choice == '1':
+            print("\n📋 ANALIZANDO TRANSACCIONES DE EJEMPLO...")
+            
+            sample_transactions = create_sample_transactions()
+            
+            for transaction in sample_transactions:
+                result = app.check_transaction(transaction)
+                app.print_analysis(transaction, result)
+                
+                input("\n⏸️  Presiona Enter para continuar...")
+        
+        elif choice == '2':
+            transaction = interactive_mode()
+            if transaction:
+                result = app.check_transaction(transaction)
+                app.print_analysis(transaction, result)
+        
+        elif choice == '3':
+            print("\n👋 ¡Gracias por usar el sistema de detección de fraude!")
+            break
+        
+        else:
+            print("❌ Opción inválida. Por favor selecciona 1, 2 o 3.")
 
 if __name__ == "__main__":
-
     main()
-
-    demo_real_time_prediction()
-
-    print("\n🎉 ¡Todas las demostraciones completadas!")
-    print("💡 La librería está lista para usar en aplicaciones de producción.")
