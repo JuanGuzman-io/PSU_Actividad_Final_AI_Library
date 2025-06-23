@@ -179,4 +179,4 @@ Asegúrate de entrenar y guardar el modelo antes de intentar cargarlo.
 
 ---
 **Universidad Internacional de La Rioja (UNIR)**  
-Fundamentos de Inteligencia Artificial para Ingenieros de Software
+Programa Superior Universitario en Inteligencia Artificial para Desarrollo de Software y DevOps
