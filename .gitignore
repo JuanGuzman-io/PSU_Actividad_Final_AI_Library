@@ -29,7 +29,7 @@ Thumbs.db
 
 # Data files
 # Uncomment the next line if you want to ignore your CSV files
-# *.csv
+*.csv
 
 # Model files
 # Uncomment the next line if you want to ignore your model files

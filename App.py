@@ -15,14 +15,14 @@ def main():
 
     print("\n📁 Paso 1: Cargando datos...")
 
-    data_path = "data.csv"
+    data_path = "credit_card_transactions.csv"
 
     try:
         df = pd.read_csv(data_path)
         print(
             f"✅ Datos cargados: {df.shape[0]} transacciones, {df.shape[1]} características")
     except FileNotFoundError:
-        print("❌ Archivo data.csv no encontrado.")
+        print("❌ Archivo credit_card_transactions.csv no encontrado.")
         print("💡 Por favor, transfiere el archivo desde Colab a este directorio.")
 
         print("🔄 Generando datos sintéticos para demostración...")

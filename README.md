@@ -2,6 +2,13 @@
 
 Sistema de detección de fraude en transacciones financieras desarrollado como parte del proyecto final de Fundamentos de IA para Ingenieros de Software.
 
+## 👥 Autores
+- **Delgado Guzmán, Juan David**
+- **Fonseca Bello, Diego Fernando**
+- **Jácome Jami, Daniela Estefanía**
+- **Parra Súa, Yohn Eduin**
+- **Poveda Melo, Ingrid Carolina**
+
 ## 📋 Descripción
 
 Esta librería proporciona una interfaz de alto nivel para entrenar, guardar, cargar y usar modelos de inteligencia artificial especializados en la detección de fraude en transacciones financieras.
@@ -87,11 +94,92 @@ Carga un modelo previamente entrenado.
 #### `test_model(data)`
 Realiza predicciones sobre nuevos datos.
 
+#### `data_clean(data_path, outlier_limit=2700, columns_to_remove=None)`
+Limpia y preprocesa datos crudos de transacciones.
+
+**Parámetros:**
+- `data_path`: Ruta al archivo CSV crudo
+- `outlier_limit`: Límite para filtrar outliers por monto
+- `columns_to_remove`: Columnas a eliminar
+
+**Retorna:** DataFrame limpio listo para entrenamiento
+
+**Funcionalidades:**
+- Filtrado de outliers por monto
+- Procesamiento de fechas y características temporales
+- Cálculo de edad del titular
+- Cálculo de distancia geográfica entre cliente y comercio
+- Codificación de variables categóricas
+- Manejo de valores nulos
+
+### 🌊 Pipeline Completo con data_clean()
+
+```python
+from AIlibrary import data_clean, FraudDetectionLibrary
+
+# 1. Limpiar datos crudos
+cleaned_df = data_clean('credit_card_transactions.csv')
+
+# 2. Entrenar modelo
+detector = FraudDetectionLibrary()
+results = detector.train_model(cleaned_df)
+
+# 3. Guardar modelo
+detector.save_model('mi_modelo')
+
+# 4. Usar modelo
+predicciones = detector.test_model(nuevos_datos)
+```
+
 ## 📊 Ejecutar Demo
+
+### 🚀 **AppCompletePipeline.py** - Pipeline Completo (RECOMENDADO)
+**Uso:** Demostración del pipeline completo desde datos crudos hasta predicciones
+
+```bash
+python AppCompletePipeline.py
+```
+
+**Características:**
+- ✅ **Pipeline completo**: datos crudos → limpieza → entrenamiento → predicciones
+- ✅ **Incluye `data_clean()`**: procesa datos sin preprocesar
+- ✅ **Realistic workflow**: simula un caso de uso real
+- ✅ **Rápida ejecución**: sin visualizaciones pesadas
+- ✅ **Ideal para entrega**: muestra todas las funcionalidades requeridas
+
+### 🎨 **App.py** - Demo con Visualizaciones
+**Uso:** Demostración completa con gráficos y análisis visual
 
 ```bash
 python App.py
 ```
+
+**Características:**
+- ✅ **Visualizaciones**: gráficos de métricas y análisis
+- ✅ **Análisis detallado**: casos de alto riesgo con estadísticas
+- ✅ **Demo interactiva**: simulación de predicciones en tiempo real
+- ✅ **Datos sintéticos**: genera datos si no encuentra el archivo original
+- ✅ **Ideal para presentaciones**: más visual y completo
+
+### ⚡ **Alternativa: data_cleaning.py**
+**Uso:** Si prefieres usar la función de limpieza por separado
+
+```bash
+python data_cleaning.py
+```
+
+**Características:**
+- ✅ **Función standalone**: limpieza independiente
+- ✅ **Compatible**: con el trabajo de tu compañero
+- ✅ **Modular**: usar solo la parte que necesites
+
+### 📋 **¿Cuál ejecutar?**
+
+| Propósito | Archivo Recomendado |
+|-----------|--------------------|
+| **Entrega del proyecto** | `AppCompletePipeline.py` ✅ |
+| **Presentación visual** | `App.py` 🎨 |
+| **Solo limpieza de datos** | `data_cleaning.py` 🧽 |
 
 El demo ejecutará automáticamente:
 1. Carga de datos
@@ -127,17 +215,25 @@ train_params = {
 
 ```
 PSU_Actividad_Final/
-├── AIlibrary.py          # Librería principal
-├── App.py                # Código de ejemplo
-├── data_generator.py     # Generador de datos sintéticos
-├── requirements.txt      # Dependencias
-├── README.md            # Documentación
-├── data.csv             # Datos de entrenamiento
-└── models/              # Modelos guardados
-    ├── modelo_model.joblib
-    ├── modelo_scaler.joblib
-    └── modelo_metadata.joblib
+├── 🎨 App.py                    # Demo con visualizaciones y gráficos
+├── 🚀 AppCompletePipeline.py     # Pipeline completo (RECOMENDADO)
+├── 🧠 AIlibrary.py              # Librería principal de detección de fraude
+├── 🧽 data_cleaning.py          # Función de limpieza separada
+├── 📄 README.md                 # Documentación (este archivo)
+├── 📎 requirements.txt          # Dependencias del proyecto
+├── 📋 credit_card_transactions.csv # Dataset crudo
+└── 📁 models/                   # Modelos entrenados guardados
+    ├── fraud_detector_v1_model.joblib
+    ├── fraud_detector_v1_scaler.joblib
+    └── fraud_detector_v1_metadata.joblib
 ```
+
+### 🔑 **Archivos Principales:**
+
+- **`AppCompletePipeline.py`** ✅ **Para entrega**: Pipeline completo con `data_clean()`
+- **`App.py`** 🎨 **Para presentar**: Demo visual con gráficos 
+- **`AIlibrary.py`** 🧠 **Core**: Librería principal con todas las funciones
+- **`data_cleaning.py`** 🧽 **Utilidad**: Función de limpieza separada
 
 ## 🎯 Transferir Datos Reales
 
@@ -173,9 +269,6 @@ Verifica que los datos de predicción tengan las mismas columnas que los datos d
 
 ### Error: "Modelo no encontrado"
 Asegúrate de entrenar y guardar el modelo antes de intentar cargarlo.
-
-## 👥 Autores
-
 
 ---
 **Universidad Internacional de La Rioja (UNIR)**  
